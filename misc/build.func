@@ -144,7 +144,7 @@ echo_default() {
   echo -e "${DGN}Using Bridge: ${BGN}vmbr0${CL}"
   echo -e "${DGN}Using Static IP Address: ${BGN}dhcp${CL}"
   echo -e "${DGN}Using Gateway IP Address: ${BGN}Default${CL}"
-  echo -e "${DGN}Using Apt-Cacher IP Address: ${BGN}Default${CL}"
+  echo -e "${DGN}Using Apt-Cacher IP Address: ${BGN}$CACHER_IP${CL}"
   echo -e "${DGN}Disable IPv6: ${BGN}No${CL}"
   echo -e "${DGN}Using Interface MTU Size: ${BGN}Default${CL}"
   echo -e "${DGN}Using DNS Search Domain: ${BGN}Host${CL}"
@@ -470,6 +470,13 @@ install_script() {
     systemctl -q stop ping-instances.service
   fi
   NEXTID=$(pvesh get /cluster/nextid)
+  if [ -e "/usr/local/bin/apt-proxy-detect.sh" ]; then
+    CACHE=$(/usr/local/bin/apt-proxy-detect.sh | sed -e 's@^.*://@@' -e 's/[/:].*$//')
+    if [ "$CACHE" != "DIRECT" ]; then
+      export CACHER="yes"
+      export CACHER_IP="$CACHE"
+    fi  
+  fi   
   timezone=$(cat /etc/timezone)
   header_info
   if (whiptail --backtitle "Proxmox VE Helper Scripts" --title "SETTINGS" --yesno "Use Default Settings?" --no-button Advanced 10 58); then
